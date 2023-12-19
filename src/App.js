@@ -15,6 +15,8 @@ function App() {
   const [searchChannelResults, setSearchChannelResults] = useState([]);
   const [searchVideoResults, setSearchVideoResults] = useState([]);
   const [clickedVideo, setClickedVideo] = useState("");
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   const onSubmit = async (data) => {
     try {
       const response = await axios.get(
@@ -42,13 +44,31 @@ function App() {
   };
 
   const playVideo = (videoId) => {
-    console.log(videoId);
     setClickedVideo(videoId);
+    scrollToTop();
+  };
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth", // Add smooth scrolling effect
+    });
   };
 
-  useEffect(() => {}, []);
+  useEffect(() => {
+    // Update window width on window resize
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Remove the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center ">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex justify-center p-4"
@@ -75,11 +95,11 @@ function App() {
       </ul>
 
       {clickedVideo && (
-        <div className=" bg-black w-full h-full flex justify-center items-center">
+        <div className=" bg-black  flex justify-center items-center">
           <div className="opacity-100 z-20">
             <ReactPlayer
               url={`https://www.youtube.com/watch?v=${clickedVideo}`}
-              width={1000}
+              width={windowWidth}
               playing
               controls
             />
@@ -94,8 +114,13 @@ function App() {
                 onClick={() => playVideo(result.id.videoId)}
                 className="flex flex-col items-center my-10 cursor-pointer"
               >
-                <img src={result.snippet.thumbnails.high.url} />
-                <li key={result.id.videoId}>{result.snippet.title}</li>
+                <img
+                  src={result.snippet.thumbnails.high.url}
+                  className={`w-[${windowWidth}px]`}
+                />
+                <li key={result.id.videoId} className="text-center">
+                  {result.snippet.title}
+                </li>
               </div>
             )
         )}
