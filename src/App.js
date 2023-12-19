@@ -16,11 +16,11 @@ function App() {
   const [searchVideoResults, setSearchVideoResults] = useState([]);
   const [clickedVideo, setClickedVideo] = useState("");
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-
+  const [savedChannel, setSavedChannel] = useState([]);
   const onSubmit = async (data) => {
     try {
       const response = await axios.get(
-        `https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${channelName}&type=channel&key=${apiKey}`
+        `https://youtube.googleapis.com/youtube/v3/search?part=snippet&q=${channelName}&type=channel&key=${apiKey}&maxResults=3`
       );
 
       setSearchChannelResults(response.data.items);
@@ -37,7 +37,6 @@ function App() {
       );
 
       setSearchVideoResults(response.data.items);
-      console.log(response.data.items);
     } catch (error) {
       console.error("Error fetching data from YouTube API:", error);
     }
@@ -54,6 +53,14 @@ function App() {
     });
   };
 
+  const saveChannelClick = (channelId) => {
+    const updatedChannels = savedChannel.includes(channelId)
+      ? savedChannel.filter((id) => id !== channelId)
+      : [...savedChannel, channelId];
+
+    setSavedChannel(updatedChannels);
+    localStorage.setItem("channels", JSON.stringify(updatedChannels));
+  };
   useEffect(() => {
     // Update window width on window resize
     const handleResize = () => {
@@ -62,13 +69,21 @@ function App() {
 
     window.addEventListener("resize", handleResize);
 
+    const channels = localStorage.getItem("channels");
+
+    channels && setSavedChannel(JSON.parse(channels));
+
     // Remove the event listener when the component unmounts
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+  useEffect(() => {
+    console.log("hi");
+  }, [savedChannel]);
   return (
-    <div className="flex flex-col items-center ">
+    <div className="flex flex-col items-center transition-all ">
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="flex justify-center p-4"
@@ -79,26 +94,36 @@ function App() {
           onChange={(e) => setChannelName(e.target.value)}
           placeholder="type channel name"
           required
+          class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-red-500 focus:border-red-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-red-500 dark:focus:border-red-500"
         />
-        <button className=" border-solid ">enter</button>
+
+        <button class="text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm  sm:w-auto px-4 py-2.5 text-center dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800">
+          enter
+        </button>
       </form>
-      <ul>
+      <ul className="flex mb-4">
         {searchChannelResults.map((result) => (
           <li
             key={result.id.channelId}
-            className="cursor-pointertransition-all ease-in-out duration-100 flex items-center justify-between"
+            className="cursor-pointer  ease-in-out duration-100 flex flex-col items-center justify-center mx-1"
           >
-            <span
+            <img
+              onClick={() => getVideos(result)}
+              src={result.snippet.thumbnails.default.url}
+              className="h-[50px] w-[50px] rounded-full"
+            />
+            {/* <span
               onClick={() => getVideos(result)}
               className=" hover:bg-sky-300 "
             >
               {result.snippet.title}
-            </span>
+            </span> */}
             <button
               type="button"
-              class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 ml-4"
+              class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-1 focus:ring-red-300 font-medium rounded-lg text-sm px-2 py-1.5  dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 "
+              onClick={() => saveChannelClick(result.id.channelId)}
             >
-              Save
+              {savedChannel.includes(result.id.channelId) ? "saved" : "save"}
             </button>
           </li>
         ))}
@@ -110,6 +135,7 @@ function App() {
             <ReactPlayer
               url={`https://www.youtube.com/watch?v=${clickedVideo}`}
               width={windowWidth}
+              height={windowWidth / 2}
               playing
               controls
             />
