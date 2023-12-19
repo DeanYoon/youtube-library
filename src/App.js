@@ -33,7 +33,7 @@ function App() {
   const getVideos = async (result) => {
     try {
       const response = await axios.get(
-        `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${result.id.channelId}&maxResults=25&key=${apiKey}`
+        `https://youtube.googleapis.com/youtube/v3/search?part=snippet&channelId=${result.id.channelId}&order=date&maxResults=25&key=${apiKey}`
       );
 
       setSearchVideoResults(response.data.items);
@@ -86,10 +86,20 @@ function App() {
         {searchChannelResults.map((result) => (
           <li
             key={result.id.channelId}
-            onClick={() => getVideos(result)}
-            className="cursor-pointer hover:bg-sky-300 transition-all ease-in-out duration-100"
+            className="cursor-pointertransition-all ease-in-out duration-100 flex items-center justify-between"
           >
-            {result.snippet.title}
+            <span
+              onClick={() => getVideos(result)}
+              className=" hover:bg-sky-300 "
+            >
+              {result.snippet.title}
+            </span>
+            <button
+              type="button"
+              class="focus:outline-none text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-3 py-2.5 me-2 mb-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900 ml-4"
+            >
+              Save
+            </button>
           </li>
         ))}
       </ul>
